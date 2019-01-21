@@ -1,21 +1,24 @@
-import nest
-import params
 import matplotlib.pyplot as plt
 import numpy as np
 
-def reset_nest():
-    nest.ResetKernel()
-    nest.SetKernelStatus({
-        'resolution': params.dt,
-        'print_time': True,
-        'structural_plasticity_update_interval': int(params.msp_update_interval / params.dt),  # update interval for MSP in time steps
-        'local_num_threads': 1,
-        'grng_seed': params.grng_seed,
-        'rng_seeds': params.rng_seeds,
-    })
+import nest
+import params
+
+
 
 class Network:
-    spike_detectors = []
+    spike_detectors = {}
+
+    def reset_nest(self):
+        nest.ResetKernel()
+        nest.SetKernelStatus({
+            'resolution': params.dt,
+            'print_time': True,
+            'structural_plasticity_update_interval': int(params.msp_update_interval / params.dt),  # update interval for MSP in time steps
+            'local_num_threads': 1,
+            'grng_seed': params.grng_seed,
+            'rng_seeds': range(params.seed+1,params.seed+1 + nest.NumProcesses())
+        })
 
     def setup_static_network(self):
         nest.SetDefaults(params.neuron_model, params.neuron_params)
@@ -73,13 +76,13 @@ class Network:
         # calculate positions of generators for neurons
         positions = np.array(neurons, int) - 1
 
-        # select these positions and convert to uple
+        # select these positions and convert to tuple
         generator_ids = tuple(np.array(self.poisson_generator_ex)[positions])
 
         # set rate for generators
         nest.SetStatus(generator_ids, {"rate": rate})
 
-    def record_spikes(self, start=0.0, end=None, neurons=None):
+    def record_spikes(self, name, start=0.0, end=None, neurons=None):
         detector_params = {'start':start}
         if end: detector_params['end'] = end
 
@@ -90,17 +93,44 @@ class Network:
         else:
             nest.Connect(self.excitatory_neurons + self.inhibitory_neurons, spike_detector,'all_to_all')
 
-        return SpikeRecording(spike_detector)
+        self.spike_detectors[name] = spike_detector
 
-
-class SpikeRecording():
-    def __init__(self, spike_detector):
-        self.spike_detector = spike_detector
-
-    def result(self, neurons=None, start=None, end=None):
-        events = nest.GetStatus(self.spike_detector,'events')[0]
+    def save_recording(self, name):
+        detector = self.spike_detectors[name]
+        events = nest.GetStatus(detector,'events')[0]
         times = events['times']
         senders = events['senders']
+
+        data = {'times': times, 'senders': senders }
+
+        filename = name+'.'+str(nest.Rank())+'.npy'
+        print("saving to", filename)
+
+        np.save(filename, data)
+        
+
+class SpikeRecording():
+    @classmethod
+    def from_file(cls, name):
+        cores = nest.NumProcesses()
+        total_times = []
+        total_senders = []
+        for rank in range(cores):
+            filename = name+'.'+str(rank)+'.npy'
+            data = np.load(filename)
+            times = data.item().get('times')
+            senders = data.item().get('senders')
+            total_times.append(times)
+            total_senders.append(senders)
+        return SpikeRecording(np.concatenate(total_times), np.concatenate(total_senders))
+
+    def __init__(self, times, senders):
+        self.times = times
+        self.senders = senders
+
+    def result(self, neurons=None, start=None, end=None):
+        times = self.times
+        senders = self.senders
 
         # filter for neurons
         if neurons:
@@ -137,10 +167,10 @@ class SpikeRecording():
         return rates
 
     def plot(self, neurons=None,start=None, end=None):
-        plt.figure(figsize=(10,10))
         times, senders = self.result(neurons, start, end)
         plt.plot(times, senders, '.', markersize=1)
         plt.xlabel("time (ms)")
         plt.ylabel("neuron")
-        plt.show()
+
+
 

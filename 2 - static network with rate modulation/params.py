@@ -3,7 +3,6 @@ import numpy as np
 seed = 549547
 procs = 4
 grng_seed               = seed
-rng_seeds               = range(seed+1,seed+2)
 numpy_seed              = seed+1000
 np.random.seed(numpy_seed)
 
