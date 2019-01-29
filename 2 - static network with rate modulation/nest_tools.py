@@ -9,8 +9,16 @@ import params
 class Network:
     spike_detectors = {}
 
+    def __init__(self, plasticity=False, target_rate=17/1000):
+        self.plasticity = plasticity
+        self.target_rate = target_rate
+
     def reset_nest(self):
         nest.ResetKernel()
+
+        if self.plasticity:
+            nest.EnableStructuralPlasticity()
+
         nest.SetKernelStatus({
             'resolution': params.dt,
             'print_time': True,
@@ -20,33 +28,75 @@ class Network:
             'rng_seeds': range(params.seed+1,params.seed+1 + nest.NumProcesses())
         })
 
+        
+
     def setup_static_network(self):
         nest.SetDefaults(params.neuron_model, params.neuron_params)
-        self.excitatory_neurons = nest.Create(params.neuron_model, params.NE)
-        self.inhibitory_neurons = nest.Create(params.neuron_model, params.NI)
-
+        nest.CopyModel(params.neuron_model, 'excitatory')
+        nest.CopyModel(params.neuron_model, 'inhibitory')
+        
         # types of synapses
         nest.CopyModel("static_synapse", "inhibitory_synapse", {"weight":-params.g*params.J, "delay":params.delay})
         nest.CopyModel("static_synapse", "excitatory_synapse", {"weight":params.J, "delay":params.delay})
+        nest.CopyModel("static_synapse", "plastic_synapse", {"weight":params.J, "delay":params.delay})
+        nest.SetDefaults('plastic_synapse',{'weight': params.J,'delay': params.delay})
+
+        if self.plasticity:
+            gc_den  = {'growth_curve': params.growth_curve, 'z': params.z0, 'growth_rate': params.slope*self.target_rate, 'eps': self.target_rate, 'continuous': False}
+            gc_axon = {'growth_curve': params.growth_curve, 'z': params.z0, 'growth_rate': params.slope*self.target_rate, 'eps': self.target_rate, 'continuous': False}
+            nest.SetDefaults('excitatory', 'synaptic_elements', {'Axon_exc': gc_axon, 'Den_exc': gc_den})
 
 
-        # connect populations
+            # Use SetKernelStatus to activate the plastic synapses
+            nest.SetKernelStatus({
+                'structural_plasticity_synapses': {
+                    'syn1': {
+                        'model': 'plastic_synapse',
+                        'post_synaptic_element': 'Den_exc',
+                        'pre_synaptic_element': 'Axon_exc',
+                    }
+                },
+                'autapses': False,
+            })
 
-        # 10% connectivity from excitatory population to all other neurons
-        nest.Connect(
-            self.excitatory_neurons,                          # from excitatory neurons
-            self.excitatory_neurons+self.inhibitory_neurons,  # to all neurons
-            {'rule': 'fixed_indegree','indegree': params.CE}, # fixed 10% indegree
-            'excitatory_synapse'                              # standard exc. synapse
-        )
+        # create populations
+        self.excitatory_neurons = nest.Create('excitatory', params.NE)
+        self.inhibitory_neurons = nest.Create('inhibitory', params.NI)
 
-        # 10% connectivity from inhibitory population to all other neurons
-        nest.Connect(
-            self.inhibitory_neurons,                          # from excitatory neurons
-            self.excitatory_neurons+self.inhibitory_neurons,  # to all neurons
-            {'rule': 'fixed_indegree','indegree': params.CI}, # fixed 10% indegree
-            'inhibitory_synapse'                              # standard inh. synapse - stronger!
-        )
+        if self.plasticity:
+            nest.Connect(
+                self.excitatory_neurons, 
+                self.inhibitory_neurons,
+                {'rule': 'fixed_indegree','indegree': params.CE},
+                'excitatory_synapse'
+            )
+            
+            nest.Connect(
+                self.inhibitory_neurons, 
+                self.excitatory_neurons+self.inhibitory_neurons,
+                {'rule': 'fixed_indegree','indegree': params.CI},
+                'inhibitory_synapse'
+            )
+
+        else:
+
+            # connect populations
+
+            # 10% connectivity from excitatory population to all other neurons
+            nest.Connect(
+                self.excitatory_neurons,                          # from excitatory neurons
+                self.excitatory_neurons+self.inhibitory_neurons,  # to all neurons
+                {'rule': 'fixed_indegree','indegree': params.CE}, # fixed 10% indegree
+                'excitatory_synapse'                              # standard exc. synapse
+            )
+
+            # 10% connectivity from inhibitory population to all other neurons
+            nest.Connect(
+                self.inhibitory_neurons,                          # from excitatory neurons
+                self.excitatory_neurons+self.inhibitory_neurons,  # to all neurons
+                {'rule': 'fixed_indegree','indegree': params.CI}, # fixed 10% indegree
+                'inhibitory_synapse'                              # standard inh. synapse - stronger!
+            )
 
         # background input - simple version, one poisson for all
         #poisson_generator = nest.Create('poisson_generator',params={'rate':params.rate})
@@ -107,7 +157,17 @@ class Network:
         print("saving to", filename)
 
         np.save(filename, data)
+    
+    def snapshot_connectivity(self):
+        local_connections = nest.GetConnections(self.excitatory_neurons, self.excitatory_neurons)
+        sources = np.array(nest.GetStatus(local_connections,'source'))
+        targets = np.array(nest.GetStatus(local_connections,'target'))
+
+        matrix = np.zeros((params.NE,params.NE))
+        for ii in np.arange(sources.shape[0]):
+            matrix[targets[ii]-1,sources[ii]-1] += 1
         
+        return matrix
 
 class SpikeRecording():
     @classmethod

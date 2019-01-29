@@ -11,9 +11,9 @@ import matplotlib.pyplot as plt  # plotting
 np.set_printoptions(precision=2)
 np.seterr(all='raise') # elevate all warnings to errors
 
-def load_mnist_data():
+def load_mnist_data(path='mnist.pkl.gz'):
     """Loads the data, returns training_data, validation_data, test_data."""
-    with gzip.open('mnist.pkl.gz', 'rb') as f:
+    with gzip.open(path, 'rb') as f:
         (x_train, y_train), (x_val, y_val), (x_test, y_test) = pickle.load(f, encoding='latin1')
 
         return (
@@ -44,8 +44,11 @@ def calc_entropies(rates):
     # normalize 
     normalized = rates / np.sum(rates, axis=0, keepdims=True)
     
+    # fix zeros
+    normalized[normalized <= 0] = 0.00000001
+
     # and calc entropies
-    return -np.sum(normalized*np.log2(normalized+0.00001), axis=0)
+    return -np.sum(normalized*np.log2(normalized), axis=0)
 
 # if we have recorded rates per neuron and we know the labels of the digits causing this rate
 # this function will calculate the mean rate for each digit class using the recorded rates
