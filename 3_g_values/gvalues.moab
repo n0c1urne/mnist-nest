@@ -1,0 +1,13 @@
+#!/bin/bash
+#MOAB -N gvalues
+#MOAB -l nodes=5:ppn=20
+#MOAB -l walltime=00:59:00
+###### -l mem=32gb
+
+WSDIR=$(ws_find my_ws)
+
+module load system/modules/testing
+module load neuro/nest/2.16.0-python-3.7.0
+
+cd $WSDIR/mnist-nest/3_g_values
+mpirun python3 gvalues.py

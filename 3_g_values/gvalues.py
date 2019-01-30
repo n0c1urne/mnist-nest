@@ -13,7 +13,6 @@ import mnist_tools
 # reseed numpy
 np.random.seed(0)
 
-# create samples
 
 # load data - some preprocessing is done in the module (reshaping)
 (x_train, y_train), (x_val, y_val), (x_test, y_test) = mnist_tools.load_mnist_data('../mnist.pkl.gz')
@@ -46,7 +45,9 @@ input_rates = mnist_tools.calc_rates(digits, pixel_samples, standardize_per_digi
 mean_input_rates_per_digit =  mnist_tools.mean_rates_per_digit(digit_labels, input_rates)
 input_entropies = mnist_tools.calc_entropies(mean_input_rates_per_digit)
 
-for g in [2, 5, 8, 11]:
+
+for g in [11]:
+    print("running with g =", g)
     params.g = float(g)
     if not os.path.exists('result'+str(g)+'.0.npy'):
         simulate(input_rates, digits, digit_labels, 'result'+str(g))

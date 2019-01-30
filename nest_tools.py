@@ -21,7 +21,7 @@ class Network:
 
         nest.SetKernelStatus({
             'resolution': params.dt,
-            'print_time': True,
+            'print_time': False,
             'structural_plasticity_update_interval': int(params.msp_update_interval / params.dt),  # update interval for MSP in time steps
             'local_num_threads': 1,
             'grng_seed': params.grng_seed,
