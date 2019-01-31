@@ -1,5 +1,6 @@
 import matplotlib.pyplot as plt
 import numpy as np
+from itertools import groupby
 
 import nest
 import params
@@ -13,7 +14,7 @@ class Network:
         self.plasticity = plasticity
         self.target_rate = target_rate
 
-    def reset_nest(self):
+    def reset_nest(self, print_time=False):
         nest.ResetKernel()
 
         if self.plasticity:
@@ -21,11 +22,13 @@ class Network:
 
         nest.SetKernelStatus({
             'resolution': params.dt,
-            'print_time': False,
+            'print_time': print_time,
             'structural_plasticity_update_interval': int(params.msp_update_interval / params.dt),  # update interval for MSP in time steps
             'local_num_threads': 1,
             'grng_seed': params.grng_seed,
-            'rng_seeds': range(params.seed+1,params.seed+1 + nest.NumProcesses())
+            'rng_seeds': range(params.seed+1,params.seed+1 + nest.NumProcesses()),
+            'data_path': 'data',
+            "overwrite_files": True
         })
 
         
@@ -145,6 +148,21 @@ class Network:
 
         self.spike_detectors[name] = spike_detector
 
+    def record_spikes_to_file(self, filename):
+        filenames = [ filename+'.'+str(i) for i in range(nest.NumProcesses())]
+        detector_params = {
+            'to_file': True,
+            'to_memory': False,
+            "withgid": True, 
+            "withtime": True
+        }
+
+        spike_detector = nest.Create('spike_detector',params=detector_params)
+        print(nest.GetStatus(spike_detector))
+
+        nest.Connect(self.excitatory_neurons + self.inhibitory_neurons, spike_detector,'all_to_all')
+
+
     def save_recording(self, name):
         detector = self.spike_detectors[name]
         events = nest.GetStatus(detector,'events')[0]
@@ -158,21 +176,30 @@ class Network:
 
         np.save(filename, data)
     
-    def snapshot_connectivity(self):
+    def snapshot_connectivity_matrix(self):
         local_connections = nest.GetConnections(self.excitatory_neurons, self.excitatory_neurons)
-        sources = np.array(nest.GetStatus(local_connections,'source'))
-        targets = np.array(nest.GetStatus(local_connections,'target'))
+        sources = np.array(nest.GetStatus(local_connections, 'source'))
+        targets = np.array(nest.GetStatus(local_connections, 'target'))
 
         matrix = np.zeros((params.NE,params.NE))
         for ii in np.arange(sources.shape[0]):
             matrix[targets[ii]-1,sources[ii]-1] += 1
         
         return matrix
+    
+    def snapshot_connectivity(self):
+        local_connections = nest.GetConnections(self.excitatory_neurons, self.excitatory_neurons)
+        sources = np.array(nest.GetStatus(local_connections, 'source'))
+        targets = np.array(nest.GetStatus(local_connections, 'target'))
+
+        return sources, targets
 
 class SpikeRecording():
     @classmethod
-    def from_file(cls, name):
-        cores = nest.NumProcesses()
+    def from_file(cls, name, cores=None):
+        if not cores:
+            cores = nest.NumProcesses()
+
         total_times = []
         total_senders = []
         for rank in range(cores):
