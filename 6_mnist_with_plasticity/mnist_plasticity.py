@@ -23,13 +23,18 @@ pixel_samples = mnist_tools.create_samples(4000, sample_size=40)
 network = nest_tools.Network(plasticity=True, target_rate=8.0/1000)
 network.reset_nest(print_time=False)
 network.setup_static_network()
-network.record_spikes_to_file('data/test')
+network.record_spikes("recording")
 
 # create training set
 last = np.zeros((4000,4000))
 for t in range(200):
     print("Timestep", t)
     nest.Simulate(1000)
+
+    print("saving spikes")
+    network.save_recording("recording", "data/spike_recording"+str(t))
+    network.reset_recording("recording")
+
 
     print("Snapshotting matrix")
     # save matrices

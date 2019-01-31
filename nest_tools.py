@@ -17,7 +17,7 @@ class Network:
     def reset_nest(self, print_time=False):
         nest.ResetKernel()
         nest.set_verbosity("M_FATAL")
-        
+
         if self.plasticity:
             nest.EnableStructuralPlasticity()
 
@@ -164,7 +164,7 @@ class Network:
         nest.Connect(self.excitatory_neurons + self.inhibitory_neurons, spike_detector,'all_to_all')
 
 
-    def save_recording(self, name):
+    def save_recording(self, name, filename):
         detector = self.spike_detectors[name]
         events = nest.GetStatus(detector,'events')[0]
         times = events['times']
@@ -172,11 +172,15 @@ class Network:
 
         data = {'times': times, 'senders': senders }
 
-        filename = name+'.'+str(nest.Rank())+'.npy'
+        filename = filename+'.'+str(nest.Rank())+'.npy'
         print("saving to", filename)
 
         np.save(filename, data)
     
+    def reset_recording(self, name):
+        detector = self.spike_detectors[name]
+        nest.SetStatus(detector,'n_events',0)
+
     def snapshot_connectivity_matrix(self):
         local_connections = nest.GetConnections(self.excitatory_neurons, self.excitatory_neurons)
         sources = np.array(nest.GetStatus(local_connections, 'source'))
