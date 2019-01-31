@@ -21,7 +21,7 @@ np.random.seed(0)
 pixel_samples = mnist_tools.create_samples(4000, sample_size=40)
 
 network = nest_tools.Network(plasticity=True, target_rate=8.0/1000)
-network.reset_nest(print_time=True)
+network.reset_nest(print_time=False)
 network.setup_static_network()
 network.record_spikes_to_file('data/test')
 
