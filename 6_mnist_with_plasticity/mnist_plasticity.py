@@ -31,12 +31,19 @@ for t in range(200):
     print("Timestep", t)
     nest.Simulate(1000)
 
+    print("Snapshotting matrix")
     # save matrices
     current = network.snapshot_connectivity_matrix()
+    
+    print("calculating difference")
     change = current - last
 
     # save change matrix, but sparsified
+    print("sparsifying")
     sparsified = sparse.csr_matrix(change)
+    
+
+    print("save sparsified matrix")
     np.save("data/matrix_change"+str(t)+"."+str(nest.Rank()), sparsified)
 
     # update last variable

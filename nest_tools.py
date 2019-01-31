@@ -16,7 +16,8 @@ class Network:
 
     def reset_nest(self, print_time=False):
         nest.ResetKernel()
-
+        nest.set_verbosity("M_FATAL")
+        
         if self.plasticity:
             nest.EnableStructuralPlasticity()
 
