@@ -183,30 +183,21 @@ class Network:
 
     def snapshot_connectivity_matrix(self):
         print("Quering nest for connections")
-        local_connections = nest.GetConnections(self.excitatory_neurons, self.excitatory_neurons)
+        local_connections = nest.GetConnections()
         
-        print("Quering nest for sources")
-        sources = np.array(nest.GetStatus(local_connections, 'source'))
-
-        print("Quering nest for targets")
-        targets = np.array(nest.GetStatus(local_connections, 'target'))
-
-        print("Creating matrix")
         matrix = np.zeros((params.NE,params.NE))
-        
-        print("Iterating sources")
-        for ii in np.arange(sources.shape[0]):
-            matrix[targets[ii]-1,sources[ii]-1] += 1
-        
-        print("Returning matrix")
+        for conn in local_connections:
+            if conn[0] <= 4000 and conn[1] <= 4000:
+                matrix[conn[1]-1, conn[0]-1] += 1
+
         return matrix
     
-    def snapshot_connectivity(self):
-        local_connections = nest.GetConnections(self.excitatory_neurons, self.excitatory_neurons)
-        sources = np.array(nest.GetStatus(local_connections, 'source'))
-        targets = np.array(nest.GetStatus(local_connections, 'target'))
-
-        return sources, targets
+    #def snapshot_connectivity(self):
+    #    local_connections = nest.GetConnections(self.excitatory_neurons, self.excitatory_neurons)
+    #    sources = np.array(nest.GetStatus(local_connections, 'source'))
+    #    targets = np.array(nest.GetStatus(local_connections, 'target'))
+    #
+    #    return sources, targets
 
 class SpikeRecording():
     @classmethod
