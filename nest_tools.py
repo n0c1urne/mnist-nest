@@ -149,8 +149,7 @@ class Network:
 
         self.spike_detectors[name] = spike_detector
 
-    def record_spikes_to_file(self, filename):
-        filenames = [ filename+'.'+str(i) for i in range(nest.NumProcesses())]
+    def record_spikes_to_file(self):
         detector_params = {
             'to_file': True,
             'to_memory': False,
@@ -159,8 +158,6 @@ class Network:
         }
 
         spike_detector = nest.Create('spike_detector',params=detector_params)
-        print(nest.GetStatus(spike_detector))
-
         nest.Connect(self.excitatory_neurons + self.inhibitory_neurons, spike_detector,'all_to_all')
 
 
@@ -173,7 +170,6 @@ class Network:
         data = {'times': times, 'senders': senders }
 
         filename = filename+'.'+str(nest.Rank())+'.npy'
-        print("saving to", filename)
 
         np.save(filename, data)
     
@@ -182,7 +178,6 @@ class Network:
         nest.SetStatus(detector,'n_events',0)
 
     def snapshot_connectivity_matrix(self):
-        print("Quering nest for connections")
         local_connections = nest.GetConnections()
         
         matrix = np.zeros((params.NE,params.NE))
