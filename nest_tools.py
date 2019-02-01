@@ -173,6 +173,14 @@ class Network:
 
         np.save(filename, data)
     
+    def spikes(self, name):
+        detector = self.spike_detectors[name]
+        events = nest.GetStatus(detector,'events')[0]
+        times = events['times']
+        senders = events['senders']
+
+        return times, senders
+
     def reset_recording(self, name):
         detector = self.spike_detectors[name]
         nest.SetStatus(detector,'n_events',0)
