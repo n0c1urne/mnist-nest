@@ -29,7 +29,7 @@ network.record_spikes_to_file()
 
 # create training set
 last = np.zeros((4000,4000))
-for t in range(5):
+for t in range(200):
     print("Timestep", t)
     nest.Simulate(1000)
 
