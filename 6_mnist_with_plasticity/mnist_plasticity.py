@@ -32,11 +32,12 @@ network.record_spikes("recording")
 # create training set
 last = np.zeros((4000,4000))
 
-DURATION = 500
+INIT_DURATION = 300
+DIGITS = 6000
 
 # open a gzipped file to record all data...
 with gzip.open('data/snapshots'+str(nest.Rank()), 'wb') as f:
-    for t in range(DURATION):
+    for t in range(INIT_DURATION):
         print("Timestep", t)
         nest.Simulate(1000)
 
@@ -59,4 +60,37 @@ with gzip.open('data/snapshots'+str(nest.Rank()), 'wb') as f:
         # update last variable
         last = current
     
-np.save("data/final_connectivity."+str(nest.Rank()), current)
+    for t in range(DIGITS):
+        input_rates = mnist_tools.calc_rates(x_train[t:t+1], pixel_samples, standardize_per_digit=True) * params.rate
+        input_rates = input_rates.squeeze()
+
+        #print(input_rates.shape, np.mean(input_rates))
+
+        for j, rate in enumerate(input_rates):
+            network.set_rate([j+1], rate)
+
+        print("Nr.", t, "Digit", y_train[t])
+        nest.Simulate(1000)
+
+        # spikes from recording, dump them...
+        times, senders = network.spikes("recording")
+        pickle.dump(times, f)
+        pickle.dump(senders, f)
+
+        # flush all spike data
+        network.reset_recording("recording")
+
+        # save matrices
+        current = network.snapshot_connectivity_matrix()
+        
+        # save change matrix, but sparsified
+        change = current - last
+        sparsified = sparse.csr_matrix(change)
+        pickle.dump(sparsified, f)
+
+        # update last variable
+        last = current
+    
+
+
+np.save("data/final_connectivity."+str(nest.Rank()), sparse.csr_matrix(current))
