@@ -20,7 +20,7 @@ np.random.seed(0)
 (x_train, y_train), (x_val, y_val), (x_test, y_test) = mnist_tools.load_mnist_data('../mnist.pkl.gz')
 
 # create pixel samples
-pixel_samples = mnist_tools.create_samples(4000, sample_size=40)
+pixel_samples = mnist_tools.create_samples(3000, sample_size=40)
 
 network = nest_tools.Network(plasticity=True, target_rate=8.0/1000)
 network.reset_nest(print_time=False)
