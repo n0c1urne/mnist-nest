@@ -188,9 +188,9 @@ class Network:
     def snapshot_connectivity_matrix(self):
         local_connections = nest.GetConnections()
         
-        matrix = np.zeros((params.NE,params.NE))
+        matrix = np.zeros((params.NE+params.NI, params.NE+params.NI))
         for conn in local_connections:
-            if conn[0] <= 4000 and conn[1] <= 4000:
+            if conn[0] <= 5000 and conn[1] <= 5000:
                 matrix[conn[1]-1, conn[0]-1] += 1
 
         return matrix
