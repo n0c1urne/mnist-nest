@@ -70,13 +70,13 @@ with gzip.open('data/snapshots'+str(nest.Rank()), 'wb') as f:
         for j, rate in enumerate(input_rates):
             network.set_rate([j+1], rate)
 
-        teacher_stim_index = 2000+y_train[t]*200
+        #teacher_stim_index = 2000+y_train[t]*200
 
-        for j in range(2000,  4000):
-            network.set_rate([j+1], params.rate)
+        #for j in range(2000,  4000):
+        #    network.set_rate([j+1], params.rate)
 
-        for j in range(teacher_stim_index,  teacher_stim_index+200):
-            network.set_rate([j+1], 1.1 * params.rate)
+        #for j in range(teacher_stim_index,  teacher_stim_index+200):
+        #    network.set_rate([j+1], 1.1 * params.rate)
 
         print("Nr.", t, "Digit", y_train[t])
         nest.Simulate(1000)
