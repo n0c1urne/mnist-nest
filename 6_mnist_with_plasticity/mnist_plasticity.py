@@ -114,12 +114,12 @@ def simulation(name, teacher, plasticity):
 
         # after learning, turn of plasticity and teacher stimulus
 
-        nest.DisableStructuralPlasticity()
+        
         for j in range(4000):
             network.set_rate([j+1], params.rate)
 
         for i in range(100):
-            print("cooldown Nr.", t, "Digit", y_train[t])
+            print("cooldown Nr.", i)
             nest.Simulate(1000)
 
             # spikes from recording, dump them...
@@ -141,6 +141,8 @@ def simulation(name, teacher, plasticity):
             # update last variable
             last = current
         
+
+        nest.DisableStructuralPlasticity()
 
         for t in range(DIGITS, DIGITS+POST_STIM):
             input_rates = mnist_tools.calc_rates(x_train[t:t+1], pixel_samples, standardize_per_digit=True) * params.rate
