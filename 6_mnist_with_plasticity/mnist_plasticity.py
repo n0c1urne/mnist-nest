@@ -118,31 +118,31 @@ def simulation(name, teacher, plasticity):
         for j in range(4000):
             network.set_rate([j+1], params.rate)
 
-        for i in range(100):
-            print("cooldown Nr.", i)
-            nest.Simulate(1000)
+        # for i in range(100):
+        #     print("cooldown Nr.", i)
+        #     nest.Simulate(1000)
 
-            # spikes from recording, dump them...
-            times, senders = network.spikes("recording")
-            pickle.dump(times, f)
-            pickle.dump(senders, f)
+        #     # spikes from recording, dump them...
+        #     times, senders = network.spikes("recording")
+        #     pickle.dump(times, f)
+        #     pickle.dump(senders, f)
 
-            # flush all spike data
-            network.reset_recording("recording")
+        #     # flush all spike data
+        #     network.reset_recording("recording")
 
-            # save matrices
-            current = network.snapshot_connectivity_matrix()
+        #     # save matrices
+        #     current = network.snapshot_connectivity_matrix()
             
-            # save change matrix, but sparsified
-            change = current - last
-            sparsified = sparse.csr_matrix(change)
-            pickle.dump(sparsified, f)
+        #     # save change matrix, but sparsified
+        #     change = current - last
+        #     sparsified = sparse.csr_matrix(change)
+        #     pickle.dump(sparsified, f)
 
-            # update last variable
-            last = current
+        #     # update last variable
+        #     last = current
         
 
-        nest.DisableStructuralPlasticity()
+        # nest.DisableStructuralPlasticity()
 
         for t in range(DIGITS, DIGITS+POST_STIM):
             input_rates = mnist_tools.calc_rates(x_train[t:t+1], pixel_samples, standardize_per_digit=True) * params.rate
