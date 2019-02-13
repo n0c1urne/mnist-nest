@@ -17,8 +17,10 @@ import gzip  # data loading
 
 def simulation(name, teacher, plasticity):
     if not os.path.exists(name):
-        os.makedirs(name)
-
+        try:
+            os.makedirs(name)
+        except:
+            pass
 
     # reseed numpy
     np.random.seed(0)
