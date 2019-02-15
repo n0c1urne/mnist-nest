@@ -15,7 +15,7 @@ import pickle  # data loading
 import gzip  # data loading
 
 
-def simulation(name, teacher, plasticity):
+def simulation(name, teacher, plasticity, no_stimulus=True):
     if not os.path.exists(name):
         try:
             os.makedirs(name)
@@ -81,7 +81,11 @@ def simulation(name, teacher, plasticity):
             #print(input_rates.shape, np.mean(input_rates))
 
             for j, rate in enumerate(input_rates):
-                network.set_rate([j+1], rate)
+                if no_stimulus:
+                    network.set_rate([j+1], params.rate)
+                else:
+                    network.set_rate([j+1], rate)
+                    
 
             if teacher:
                 teacher_stim_index = 2000+y_train[t]*200
@@ -151,8 +155,11 @@ def simulation(name, teacher, plasticity):
             input_rates = input_rates.squeeze()
 
             for j, rate in enumerate(input_rates):
-                network.set_rate([j+1], rate)
-
+                if no_stimulus:
+                    network.set_rate([j+1], params.rate)
+                else:
+                    network.set_rate([j+1], rate)
+                
             print("poststim Nr.", t, "Digit", y_train[t])
             nest.Simulate(1000)
 
@@ -204,9 +211,17 @@ if __name__ == "__main__":
         const=True,
         default=False
     )
+
+    parser.add_argument(
+        "--without-stimulus",
+        nargs='?',
+        help="flag for stimulus",
+        const=True,
+        default=False
+    )
     
     args = parser.parse_args()
 
     # global settings
-    simulation(args.name, args.with_teacher, args.with_plasticity)
+    simulation(args.name, args.with_teacher, args.with_plasticity, args.without_stimulus)
     #print(args.name, args.with_teacher, args.with_plasticity)
