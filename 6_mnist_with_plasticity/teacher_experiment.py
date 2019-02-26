@@ -71,7 +71,7 @@ def simulation(name, teacher_strength):
                 network.set_rate([j+1], params.rate)
 
             for j in range(teacher_stim_index,  teacher_stim_index+200):
-                network.set_rate([j+1], 1.0 + (teacher_strength/100.0) * params.rate)
+                network.set_rate([j+1], (1.0 + teacher_strength/100.0) * params.rate)
 
             print("Nr.", t, "Digit", y_train[t])
 
