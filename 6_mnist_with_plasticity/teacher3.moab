@@ -9,4 +9,4 @@ module load system/modules/testing
 module load neuro/nest/2.16.0-python-3.7.0
 
 cd $WSDIR/mnist-nest/6_mnist_with_plasticity
-mpirun python3 teacher_experiment.py --name teacher_experiment1 --teacher-strength 30
+mpirun python3 teacher_experiment.py --name teacher_experiment2 --teacher-strength 30
