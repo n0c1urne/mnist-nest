@@ -16,6 +16,9 @@ import gzip  # data loading
 
 
 def simulation(name, teacher_strength):
+    # load data - some preprocessing is done in the module (reshaping)
+    (x_train, y_train), (x_val, y_val), (x_test, y_test) = mnist_tools.load_mnist_data('../mnist.pkl.gz')
+    
     if not os.path.exists(name):
         try:
             os.makedirs(name)
