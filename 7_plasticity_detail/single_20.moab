@@ -1,0 +1,16 @@
+#!/bin/bash
+#MOAB -N single_stimulus_20
+#MOAB -l nodes=10:ppn=20
+#MOAB -l walltime=40:00:00
+
+WSDIR=$(ws_find my_ws)
+
+module load system/modules/testing
+module load neuro/nest/2.16.0-python-3.7.0
+
+cd $WSDIR/mnist-nest/7_plasticity_detail
+mpirun python3 teacher_experiment.py --name single_stimulus_20_1 --teacher-strength 20 --stimulus-duration 1
+mpirun python3 teacher_experiment.py --name single_stimulus_20_2 --teacher-strength 20 --stimulus-duration 2
+mpirun python3 teacher_experiment.py --name single_stimulus_20_3 --teacher-strength 20 --stimulus-duration 3
+mpirun python3 teacher_experiment.py --name single_stimulus_20_5 --teacher-strength 20 --stimulus-duration 5
+mpirun python3 teacher_experiment.py --name single_stimulus_20_10 --teacher-strength 20 --stimulus-duration 10
