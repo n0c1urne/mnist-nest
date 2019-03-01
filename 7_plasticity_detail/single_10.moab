@@ -1,7 +1,7 @@
 #!/bin/bash
 #MOAB -N single_stimulus_10
 #MOAB -l nodes=10:ppn=20
-#MOAB -l walltime=40:00:00
+#MOAB -l walltime=03:00:00
 
 WSDIR=$(ws_find my_ws)
 
