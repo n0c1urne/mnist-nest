@@ -10,9 +10,10 @@ import params
 class Network:
     spike_detectors = {}
 
-    def __init__(self, plasticity=False, target_rate=17/1000):
+    def __init__(self, plasticity=False, target_rate=17/1000, prewire=False):
         self.plasticity = plasticity
         self.target_rate = target_rate
+        self.prewire = prewire
 
     def reset_nest(self, print_time=False):
         nest.ResetKernel()
@@ -81,6 +82,14 @@ class Network:
                 {'rule': 'fixed_indegree','indegree': params.CI},
                 'inhibitory_synapse'
             )
+
+            if self.prewire:
+                nest.Connect(
+                    self.excitatory_neurons, 
+                    self.excitatory_neurons,
+                    {'rule': 'fixed_indegree','indegree': params.CE},
+                    'plastic_synapse'
+                )
 
         else:
 

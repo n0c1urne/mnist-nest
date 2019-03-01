@@ -47,7 +47,7 @@ def simulation(name, teacher_strength, stimulus_duration):
 
     # reseed numpy
     np.random.seed(0)
-    network = nest_tools.Network(plasticity=True, target_rate=8.0/1000)
+    network = nest_tools.Network(plasticity=True, target_rate=8.0/1000, prewire=True)
     
     network.reset_nest(print_time=False)
     network.setup_static_network()
@@ -58,7 +58,7 @@ def simulation(name, teacher_strength, stimulus_duration):
     # connectivity matrix
     last = np.zeros((5000,5000))
 
-    INIT_DURATION = 300
+    INIT_DURATION = 10
     DIGITS = 1
     POST_STIM = 100
 
@@ -98,7 +98,7 @@ def simulation(name, teacher_strength, stimulus_duration):
             last = save_data(f, last, network)
 
 
-    np.save(name+"/final_connectivity."+str(nest.Rank()), sparse.csr_matrix(current))
+    #np.save(name+"/final_connectivity."+str(nest.Rank()), sparse.csr_matrix(current))
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -127,6 +127,8 @@ if __name__ == "__main__":
 
     # global settings
     print(args.teacher_strength)
+
+    params.slope = 1.
 
     simulation(args.name, args.teacher_strength, args.stimulus_duration)
     #print(args.name, args.with_teacher, args.with_plasticity)
