@@ -58,7 +58,7 @@ def simulation(name, teacher_strength, stimulus_duration):
     # connectivity matrix
     last = np.zeros((5000,5000))
 
-    INIT_DURATION = 10
+    INIT_DURATION = 50
     DIGITS = 1
     POST_STIM = 100
 
@@ -128,7 +128,7 @@ if __name__ == "__main__":
     # global settings
     print(args.teacher_strength)
 
-    params.slope = 1.
+    params.slope = 0.8
 
     simulation(args.name, args.teacher_strength, args.stimulus_duration)
     #print(args.name, args.with_teacher, args.with_plasticity)
