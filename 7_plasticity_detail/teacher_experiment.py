@@ -58,9 +58,9 @@ def simulation(name, teacher_strength, stimulus_duration):
     # connectivity matrix
     last = np.zeros((5000,5000))
 
-    INIT_DURATION = 50
+    INIT_DURATION = 100
     DIGITS = 1
-    POST_STIM = 100
+    POST_STIM = 300
 
     # open a gzipped file to record all data...
     with gzip.open(name+'/snapshots'+str(nest.Rank()), 'wb') as f:
