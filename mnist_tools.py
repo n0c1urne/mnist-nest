@@ -70,7 +70,7 @@ def mean_rates_per_digit(digit_labels, rates):
     return result
 
 # calculates the input rates and the entropies for given digits and samples
-def calc_rates(digits, pixel_samples, standardize_per_digit = True, dampening=10):
+def calc_rates(digits, pixel_samples, standardize_per_digit = True, strength=10):
     # precalculate activations for these digits
     vectors = digit_to_vectors(digits, pixel_samples)
 
@@ -89,7 +89,7 @@ def calc_rates(digits, pixel_samples, standardize_per_digit = True, dampening=10
         rate_factors = (activations - means) / stds
 
     # final input rates
-    input_rates = rate_factors/dampening + 1
+    input_rates = strength*rate_factors/100.0 + 1
     
     return input_rates
 

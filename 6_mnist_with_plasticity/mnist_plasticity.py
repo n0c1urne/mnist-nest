@@ -15,7 +15,25 @@ import pickle  # data loading
 import gzip  # data loading
 
 
-def simulation(name, teacher, plasticity, no_stimulus=True):
+def save_data(f, last, network):
+    times, senders = network.spikes("recording")
+    pickle.dump(times, f)
+    pickle.dump(senders, f)
+
+    # flush all spike data
+    network.reset_recording("recording")
+
+    # save matrices
+    current = network.snapshot_connectivity_matrix()
+    
+    # save change matrix, but sparsified
+    change = current - last
+    sparsified = sparse.csr_matrix(change)
+    pickle.dump(sparsified, f)
+
+    return current
+
+def simulation(name, teacher, plasticity, no_stimulus=True, teacher_strength=10, stimulus_strength=10):
     if not os.path.exists(name):
         try:
             os.makedirs(name)
@@ -55,27 +73,11 @@ def simulation(name, teacher, plasticity, no_stimulus=True):
             print("Timestep", t)
             nest.Simulate(1000)
 
-            # spikes from recording, dump them...
-            times, senders = network.spikes("recording")
-            pickle.dump(times, f)
-            pickle.dump(senders, f)
-
-            # flush all spike data
-            network.reset_recording("recording")
-
-            # save matrices
-            current = network.snapshot_connectivity_matrix()
-            
-            # save change matrix, but sparsified
-            change = current - last
-            sparsified = sparse.csr_matrix(change)
-            pickle.dump(sparsified, f)
-
-            # update last variable
-            last = current
+            # save data for this step
+            last = save_data(f, last, network)
         
         for t in range(DIGITS):
-            input_rates = mnist_tools.calc_rates(x_train[t:t+1], pixel_samples, standardize_per_digit=True) * params.rate
+            input_rates = mnist_tools.calc_rates(x_train[t:t+1], pixel_samples, standardize_per_digit=True, strength=stimulus_strength) * params.rate
             input_rates = input_rates.squeeze()
 
             #print(input_rates.shape, np.mean(input_rates))
@@ -94,64 +96,27 @@ def simulation(name, teacher, plasticity, no_stimulus=True):
                     network.set_rate([j+1], params.rate)
 
                 for j in range(teacher_stim_index,  teacher_stim_index+200):
-                    network.set_rate([j+1], 1.1 * params.rate)
+                    network.set_rate([j+1], (1.0 + teacher_strength/100.0) * params.rate)
 
             print("Nr.", t, "Digit", y_train[t])
             nest.Simulate(1000)
 
-            # spikes from recording, dump them...
-            times, senders = network.spikes("recording")
-            pickle.dump(times, f)
-            pickle.dump(senders, f)
-
-            # flush all spike data
-            network.reset_recording("recording")
-
-            # save matrices
-            current = network.snapshot_connectivity_matrix()
-            
-            # save change matrix, but sparsified
-            change = current - last
-            sparsified = sparse.csr_matrix(change)
-            pickle.dump(sparsified, f)
-
-            # update last variable
-            last = current
-
-        # after learning, turn of plasticity and teacher stimulus
-
+            # save data for this step
+            last = save_data(f, last, network)
         
+        # after learning, turn of plasticity and teacher stimulus
         for j in range(4000):
             network.set_rate([j+1], params.rate)
 
-        # for i in range(100):
-        #     print("cooldown Nr.", i)
-        #     nest.Simulate(1000)
+        for i in range(10):
+             print("cooldown Nr.", i)
+             nest.Simulate(1000)
 
-        #     # spikes from recording, dump them...
-        #     times, senders = network.spikes("recording")
-        #     pickle.dump(times, f)
-        #     pickle.dump(senders, f)
-
-        #     # flush all spike data
-        #     network.reset_recording("recording")
-
-        #     # save matrices
-        #     current = network.snapshot_connectivity_matrix()
-            
-        #     # save change matrix, but sparsified
-        #     change = current - last
-        #     sparsified = sparse.csr_matrix(change)
-        #     pickle.dump(sparsified, f)
-
-        #     # update last variable
-        #     last = current
+            # save data for this step
+            last = save_data(f, last, network)
         
-
-        # nest.DisableStructuralPlasticity()
-
         for t in range(DIGITS, DIGITS+POST_STIM):
-            input_rates = mnist_tools.calc_rates(x_train[t:t+1], pixel_samples, standardize_per_digit=True) * params.rate
+            input_rates = mnist_tools.calc_rates(x_train[t:t+1], pixel_samples, standardize_per_digit=True, strength=stimulus_strength) * params.rate
             input_rates = input_rates.squeeze()
 
             for j, rate in enumerate(input_rates):
@@ -163,27 +128,10 @@ def simulation(name, teacher, plasticity, no_stimulus=True):
             print("poststim Nr.", t, "Digit", y_train[t])
             nest.Simulate(1000)
 
-            # spikes from recording, dump them...
-            times, senders = network.spikes("recording")
-            pickle.dump(times, f)
-            pickle.dump(senders, f)
-
-            # flush all spike data
-            network.reset_recording("recording")
-
-            # save matrices
-            current = network.snapshot_connectivity_matrix()
-            
-            # save change matrix, but sparsified
-            change = current - last
-            sparsified = sparse.csr_matrix(change)
-            pickle.dump(sparsified, f)
-
-            # update last variable
-            last = current
+            # save data for this step
+            last = save_data(f, last, network)
         
-
-    np.save(name+"/final_connectivity."+str(nest.Rank()), sparse.csr_matrix(current))
+    #np.save(name+"/final_connectivity."+str(nest.Rank()), sparse.csr_matrix(current))
 
 
 
@@ -219,9 +167,29 @@ if __name__ == "__main__":
         const=True,
         default=False
     )
+    parser.add_argument(
+        "--teacher-strength",
+        type=int,
+        help="strength of teacher stimulus in percent",
+        default=10
+    )    
+    parser.add_argument(
+        "--stimulus-strength",
+        type=int,
+        help="strength of stimulus in percent",
+        default=10
+    )    
+    
     
     args = parser.parse_args()
 
     # global settings
-    simulation(args.name, args.with_teacher, args.with_plasticity, args.without_stimulus)
-    #print(args.name, args.with_teacher, args.with_plasticity)
+    simulation(
+        args.name, 
+        args.with_teacher, 
+        args.with_plasticity, 
+        args.without_stimulus, 
+        args.teacher_strength, 
+        args.stimulus_strength
+    )
+    
