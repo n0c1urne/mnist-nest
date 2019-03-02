@@ -109,8 +109,8 @@ def simulation(name, teacher, plasticity, no_stimulus=True, teacher_strength=10,
             network.set_rate([j+1], params.rate)
 
         for i in range(10):
-             print("cooldown Nr.", i)
-             nest.Simulate(1000)
+            print("cooldown Nr.", i)
+            nest.Simulate(1000)
 
             # save data for this step
             last = save_data(f, last, network)
