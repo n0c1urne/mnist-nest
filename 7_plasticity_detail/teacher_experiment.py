@@ -47,7 +47,7 @@ def simulation(name, teacher_strength, stimulus_duration):
 
     # reseed numpy
     np.random.seed(0)
-    network = nest_tools.Network(plasticity=True, target_rate=8.0/1000, prewire=True)
+    network = nest_tools.Network(plasticity=True, target_rate=8.0/1000)
     
     network.reset_nest(print_time=False)
     network.setup_static_network()
@@ -58,9 +58,9 @@ def simulation(name, teacher_strength, stimulus_duration):
     # connectivity matrix
     last = np.zeros((5000,5000))
 
-    INIT_DURATION = 100
+    INIT_DURATION = 300
     DIGITS = 1
-    POST_STIM = 300
+    POST_STIM = 500
 
     # open a gzipped file to record all data...
     with gzip.open(name+'/snapshots'+str(nest.Rank()), 'wb') as f:
