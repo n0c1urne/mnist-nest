@@ -79,7 +79,7 @@ def simulation(name, teacher, plasticity, no_stimulus=True, teacher_strength=10,
         for t in range(DIGITS):
             input_rates = mnist_tools.calc_rates(x_train[t:t+1], pixel_samples, standardize_per_digit=True, strength=stimulus_strength) * params.rate
             input_rates = input_rates.squeeze()
-            input_rates = np.max(input_rates, 0.0)
+            input_rates[input_rates < 0] = 0
 
             #print(input_rates.shape, np.mean(input_rates))
 
@@ -119,7 +119,7 @@ def simulation(name, teacher, plasticity, no_stimulus=True, teacher_strength=10,
         for t in range(DIGITS, DIGITS+POST_STIM):
             input_rates = mnist_tools.calc_rates(x_train[t:t+1], pixel_samples, standardize_per_digit=True, strength=stimulus_strength) * params.rate
             input_rates = input_rates.squeeze()
-            input_rates = np.max(input_rates, 0.0)
+            input_rates[input_rates < 0] = 0
 
             for j, rate in enumerate(input_rates):
                 if no_stimulus:
