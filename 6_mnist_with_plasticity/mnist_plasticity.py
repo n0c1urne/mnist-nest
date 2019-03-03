@@ -79,6 +79,7 @@ def simulation(name, teacher, plasticity, no_stimulus=True, teacher_strength=10,
         for t in range(DIGITS):
             input_rates = mnist_tools.calc_rates(x_train[t:t+1], pixel_samples, standardize_per_digit=True, strength=stimulus_strength) * params.rate
             input_rates = input_rates.squeeze()
+            input_rates = np.max(input_rates, 0.0)
 
             #print(input_rates.shape, np.mean(input_rates))
 
@@ -96,7 +97,7 @@ def simulation(name, teacher, plasticity, no_stimulus=True, teacher_strength=10,
                     network.set_rate([j+1], params.rate)
 
                 for j in range(teacher_stim_index,  teacher_stim_index+200):
-                    network.set_rate([j+1], (1.0 + teacher_strength/100.0) * params.rate)
+                    network.set_rate([j+1], max((1.0 + teacher_strength/100.0) * params.rate, 0.0))
 
             print("Nr.", t, "Digit", y_train[t])
             nest.Simulate(1000)
@@ -118,6 +119,7 @@ def simulation(name, teacher, plasticity, no_stimulus=True, teacher_strength=10,
         for t in range(DIGITS, DIGITS+POST_STIM):
             input_rates = mnist_tools.calc_rates(x_train[t:t+1], pixel_samples, standardize_per_digit=True, strength=stimulus_strength) * params.rate
             input_rates = input_rates.squeeze()
+            input_rates = np.max(input_rates, 0.0)
 
             for j, rate in enumerate(input_rates):
                 if no_stimulus:
