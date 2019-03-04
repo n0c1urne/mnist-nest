@@ -58,8 +58,9 @@ def simulation(name, teacher_strength, stimulus_duration):
     # connectivity matrix
     last = np.zeros((5000,5000))
 
-    INIT_DURATION = 300
-    DIGITS = 1
+    INIT_DURATION = 1
+    STIMULI = 10
+    STIM_ONE_ONLY = 10
     POST_STIM = 500
 
     # open a gzipped file to record all data...
@@ -71,18 +72,64 @@ def simulation(name, teacher_strength, stimulus_duration):
             # spikes from recording, dump them...
             last = save_data(f, last, network)
 
-        for t in range(DIGITS):
+        for t in range(STIMULI):
             teacher_stim_index = 0
 
             for j in range(2000,  4000):
                 network.set_rate([j+1], params.rate)
 
+            #first stimulus
             for j in range(teacher_stim_index,  teacher_stim_index+200):
                 network.set_rate([j+1], (1.0 + teacher_strength/100.0) * params.rate)
 
-            print("Nr.", t, "Digit", y_train[t])
+            #second stimulus
+            for j in range(teacher_stim_index+200,  teacher_stim_index+400):
+                network.set_rate([j+1], (1.0 + teacher_strength/100.0) * params.rate)
+
+            print("stimulus nr."+str(t))
 
             for i in range(stimulus_duration):
+                nest.Simulate(1000)
+
+                # spikes from recording, dump them...
+                last = save_data(f, last, network)
+
+            for j in range(0,  4000):
+                network.set_rate([j+1], params.rate)
+
+            for i in range(5):
+                print("Pause "+str(i))
+                nest.Simulate(1000)
+
+                # spikes from recording, dump them...
+                last = save_data(f, last, network)
+
+        for j in range(0,  4000):
+            network.set_rate([j+1], params.rate)
+
+        for t in range(STIM_ONE_ONLY):
+            teacher_stim_index = 0
+
+            for j in range(2000,  4000):
+                network.set_rate([j+1], params.rate)
+
+            #first stimulus
+            for j in range(teacher_stim_index,  teacher_stim_index+200):
+                network.set_rate([j+1], (1.0 + teacher_strength/100.0) * params.rate)
+
+            print("single stimulus nr."+str(t))
+
+            for i in range(stimulus_duration):
+                nest.Simulate(1000)
+
+                # spikes from recording, dump them...
+                last = save_data(f, last, network)
+
+            for j in range(0,  4000):
+                network.set_rate([j+1], params.rate)
+
+            for i in range(5):
+                print("Pause "+str(i))
                 nest.Simulate(1000)
 
                 # spikes from recording, dump them...
@@ -92,13 +139,11 @@ def simulation(name, teacher_strength, stimulus_duration):
             network.set_rate([j+1], params.rate)
 
         for t in range(POST_STIM):
+            print("poststim nr. "+str(t))
             nest.Simulate(1000)
 
             # spikes from recording, dump them...
             last = save_data(f, last, network)
-
-
-    #np.save(name+"/final_connectivity."+str(nest.Rank()), sparse.csr_matrix(current))
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -125,10 +170,5 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    # global settings
-    print(args.teacher_strength)
-
-    #params.slope = 0.8
-
     simulation(args.name, args.teacher_strength, args.stimulus_duration)
-    #print(args.name, args.with_teacher, args.with_plasticity)
+    
