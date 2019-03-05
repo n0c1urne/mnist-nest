@@ -58,7 +58,7 @@ def simulation(name, teacher_strength, stimulus_duration):
     # connectivity matrix
     last = np.zeros((5000,5000))
 
-    INIT_DURATION = 1
+    INIT_DURATION = 300
     STIMULI = 10
     STIM_ONE_ONLY = 10
     POST_STIM = 500

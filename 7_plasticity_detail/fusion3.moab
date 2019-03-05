@@ -1,0 +1,14 @@
+#!/bin/bash
+#MOAB -N fusion
+#MOAB -l nodes=10:ppn=20
+#MOAB -l walltime=40:00:00
+
+WSDIR=$(ws_find my_ws)
+
+module load system/modules/testing
+module load neuro/nest/2.16.0-python-3.7.0
+
+cd $WSDIR/mnist-nest/7_plasticity_detail
+mpirun python3 teacher_experiment.py --name fusion_30_5 --teacher-strength 30 --stimulus-duration 5
+mpirun python3 teacher_experiment.py --name fusion_30_10 --teacher-strength 30 --stimulus-duration 10
+mpirun python3 teacher_experiment.py --name fusion_30_20 --teacher-strength 30 --stimulus-duration 20
