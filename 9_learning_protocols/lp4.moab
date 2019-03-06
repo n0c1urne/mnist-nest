@@ -1,5 +1,5 @@
 #!/bin/bash
-#MOAB -N lp1
+#MOAB -N lp4
 #MOAB -l nodes=10:ppn=20
 #MOAB -l walltime=40:00:00
 
