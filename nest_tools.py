@@ -34,7 +34,7 @@ class Network:
 
         
 
-    def setup_static_network(self):
+    def setup_static_network(self, connections=None):
         nest.SetDefaults(params.neuron_model, params.neuron_params)
         nest.CopyModel(params.neuron_model, 'excitatory')
         nest.CopyModel(params.neuron_model, 'inhibitory')
@@ -82,9 +82,48 @@ class Network:
                 'inhibitory_synapse'
             )
 
+        elif connections is not None:
+            assert connections.shape == (5000,5000), "Connectivity matrix must be of shape (5000, 5000)"
+            
+            count = 0
+            # use given connectivity matrix to setup network
+            tuples_ex = []
+            tuples_in = []
+            for source in range(5000):
+                for target in range(5000):
+                    # duplicate connections
+                    for i in range(int(connections[target, source])):
+                        count += 1
+                        if count % 100000 == 0:
+                            print(count)
+
+                        if source >= 3999:
+                            tuples_in.append((source+1, target+1))
+                        else:
+                            tuples_ex.append((source+1, target+1))
+                        #spec = 'inhibitory_synapse' if source >= 4000 else 'excitatory_synapse'
+                        #nest.Connect(
+                        #    [source+1], 
+                        #    [target+1],
+                        #    'one_to_one',
+                        #    syn_spec=spec
+                        #)
+            #spec = 'inhibitory_synapse' if source >= 4000 else 'excitatory_synapse'
+            nest.Connect(
+                list(map(lambda x: x[0], tuples_in)),
+                list(map(lambda x: x[1], tuples_in)), 
+                'one_to_one',
+                syn_spec='inhibitory_synapse'
+            )
+            nest.Connect(
+                list(map(lambda x: x[0], tuples_ex)),
+                list(map(lambda x: x[1], tuples_ex)), 
+                'one_to_one',
+                syn_spec='excitatory_synapse'
+            )
         else:
 
-            # connect populations
+            # connect populations randomly
 
             # 10% connectivity from excitatory population to all other neurons
             nest.Connect(
