@@ -85,7 +85,7 @@ def simulation(
     last = np.zeros((5000, 5000))
 
     # time to grow initial network - fixed
-    INIT_DURATION = 1
+    INIT_DURATION = 300
 
     # open a gzipped file to record all data... different file per process
     with gzip.open(name+'/snapshots'+str(nest.Rank()), 'wb') as f:
