@@ -114,14 +114,7 @@ def simulation(
             teacher_rates[teacher_stim_slice] = (1.0 + teacher_strength/100.0)
 
             stim = (input_rates + teacher_rates) / 2  * params.rate
-
-            plt.hist(input_rates)
-            plt.show()
-            plt.hist(teacher_rates)
-            plt.show()
-            plt.hist(stim)
-            plt.show()
-
+            
             # first reset all teacher rates
             for j in range(0,  4000):
                 network.set_rate([j+1], stim[j])
