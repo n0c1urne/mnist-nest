@@ -75,7 +75,7 @@ def simulation(
         network = nest_tools.Network()
 
     # initialize network
-    network.reset_nest(print_time=True)
+    network.reset_nest(print_time=False)
     network.setup_static_network()
 
     # initialize spike detector

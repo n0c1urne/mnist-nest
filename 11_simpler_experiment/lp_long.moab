@@ -8,5 +8,5 @@ WSDIR=$(ws_find my_ws)
 module load system/modules/testing
 module load neuro/nest/2.16.0-python-3.7.0
 
-cd $WSDIR/mnist-nest/9_learning_protocols
+cd $WSDIR/mnist-nest/11_simpler_experiment
 mpirun python3 mnist_plasticity.py --with-plasticity --stimulus-count 1000 --stimulus-duration 3 --stimulus-pause 3 --teacher-strength 20 --stimulus-strength 20
