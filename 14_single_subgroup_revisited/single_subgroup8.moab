@@ -1,0 +1,12 @@
+#!/bin/bash
+#MOAB -N two_digits
+#MOAB -l nodes=10:ppn=20
+#MOAB -l walltime=12:00:00
+
+WSDIR=$(ws_find my_ws)
+
+module load system/modules/testing
+module load neuro/nest/2.16.0-python-3.7.0
+
+cd $WSDIR/mnist-nest/14_single_subgroup_revisited
+mpirun python3 mnist_plasticity.py --with-plasticity --stimulus-count 3 --stimulus-duration 20 --stimulus-pause 100 --stimulus-strength 20
