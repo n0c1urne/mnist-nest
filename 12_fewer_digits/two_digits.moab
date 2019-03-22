@@ -9,4 +9,4 @@ module load system/modules/testing
 module load neuro/nest/2.16.0-python-3.7.0
 
 cd $WSDIR/mnist-nest/12_fewer_digits
-mpirun python3 mnist_plasticity.py --with-plasticity --stimulus-count 10 --stimulus-duration 5 --stimulus-pause 100 --teacher-strength 20 --stimulus-strength 0
+mpirun python3 mnist_plasticity.py --with-plasticity --stimulus-count 5 --stimulus-duration 20 --stimulus-pause 100 --teacher-strength 30 --stimulus-strength 30
